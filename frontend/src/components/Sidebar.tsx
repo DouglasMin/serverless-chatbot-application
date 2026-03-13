@@ -3,6 +3,7 @@ import type { ConversationMetadata, GptModelId } from "@chatbot/shared";
 interface Props {
   conversations: ConversationMetadata[];
   activeId: string | null;
+  selectedModel: GptModelId;
   onSelect: (id: string) => void;
   onCreate: (model: GptModelId) => void;
   onDelete: (id: string) => void;
@@ -12,6 +13,7 @@ interface Props {
 export default function Sidebar({
   conversations,
   activeId,
+  selectedModel,
   onSelect,
   onCreate,
   onDelete,
@@ -21,7 +23,7 @@ export default function Sidebar({
     <aside className="flex h-full w-64 flex-col border-r border-surface-800 bg-surface-900">
       <div className="p-3">
         <button
-          onClick={() => onCreate("gpt-5.4")}
+          onClick={() => onCreate(selectedModel)}
           className="flex w-full items-center justify-center gap-2 rounded-lg border border-surface-700 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-surface-800"
         >
           <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

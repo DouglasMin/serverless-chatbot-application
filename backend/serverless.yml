@@ -1,10 +1,21 @@
+frameworkVersion: '3'
 service: chatbot-backend
+useDotenv: true
 
 provider:
   name: aws
   runtime: nodejs20.x
-  stage: ${opt:stage, 'dev'}
-  region: ${opt:region, 'us-east-1'}
+  deploymentMethod: direct
+  versionFunctions: false
+  stage: ${env:STAGE, 'dev'}
+  region: ${env:AWS_REGION, 'ap-northeast-2'}
+  profile: ${env:AWS_PROFILE, 'dongik2'}
+  tags:
+    Service: ${self:service}
+    Environment: ${sls:stage}
+  stackTags:
+    Service: ${self:service}
+    Environment: ${sls:stage}
   environment:
     CONVERSATIONS_TABLE: ${self:service}-conversations-${sls:stage}
     STAGE: ${sls:stage}
@@ -101,7 +112,6 @@ functions:
           - x-session-id
         allowedMethods:
           - POST
-          - OPTIONS
 
 resources:
   Resources:

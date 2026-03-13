@@ -1,17 +1,22 @@
+frameworkVersion: '3'
 service: chatbot-frontend
+useDotenv: true
 
 provider:
   name: aws
-  region: ${opt:region, 'us-east-1'}
-  stage: ${opt:stage, 'dev'}
+  region: ${env:AWS_REGION, 'ap-northeast-2'}
+  stage: ${env:STAGE, 'dev'}
+  profile: ${env:AWS_PROFILE, 'dongik2'}
 
 plugins:
   - serverless-s3-sync
   - serverless-cloudfront-invalidate
 
 custom:
+  websiteBucketName: ${self:service}-${sls:stage}-${aws:accountId}-${aws:region}
+  cloudFrontOacName: ${self:service}-${sls:stage}-${aws:accountId}-${aws:region}-oac
   s3Sync:
-    - bucketName: ${self:service}-${sls:stage}
+    - bucketName: ${self:custom.websiteBucketName}
       localDir: dist
       deleteRemoved: true
   cloudfrontInvalidate:
@@ -24,7 +29,7 @@ resources:
     WebsiteBucket:
       Type: AWS::S3::Bucket
       Properties:
-        BucketName: ${self:service}-${sls:stage}
+        BucketName: ${self:custom.websiteBucketName}
         PublicAccessBlockConfiguration:
           BlockPublicAcls: true
           BlockPublicPolicy: true
@@ -56,7 +61,7 @@ resources:
       Type: AWS::CloudFront::OriginAccessControl
       Properties:
         OriginAccessControlConfig:
-          Name: ${self:service}-${sls:stage}-oac
+          Name: ${self:custom.cloudFrontOacName}
           OriginAccessControlOriginType: s3
           SigningBehavior: always
           SigningProtocol: sigv4
@@ -96,5 +101,7 @@ resources:
       Value: !Ref CloudFrontDistribution
     CloudFrontDomainName:
       Value: !GetAtt CloudFrontDistribution.DomainName
+    WebsiteUrl:
+      Value: !Join ["", ["https://", !GetAtt CloudFrontDistribution.DomainName]]
     WebsiteBucketName:
       Value: !Ref WebsiteBucket

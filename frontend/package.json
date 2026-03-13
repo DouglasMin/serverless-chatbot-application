@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
+    "deploy": "pnpm build && serverless deploy --verbose",
     "preview": "vite preview"
   },
   "dependencies": {

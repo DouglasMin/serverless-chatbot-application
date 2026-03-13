@@ -78,6 +78,7 @@ export default function App() {
         <Sidebar
           conversations={conversations}
           activeId={activeId}
+          selectedModel={selectedModel}
           onSelect={setActiveId}
           onCreate={handleNewChat}
           onDelete={remove}
@@ -104,7 +105,7 @@ export default function App() {
               <ModelSelector
                 value={activeConv.model as GptModelId}
                 onChange={() => {}}
-                disabled={hasMessages}
+                disabled
               />
             </>
           )}

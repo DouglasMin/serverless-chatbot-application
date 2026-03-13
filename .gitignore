@@ -3,4 +3,8 @@ dist/
 .build/
 .serverless/
 .env
+.env.*
+!.env.example
+!.env.production
 *.js.map
+_demo-*/

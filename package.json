@@ -3,9 +3,9 @@
   "private": true,
   "scripts": {
     "deploy": "pnpm deploy:backend && pnpm deploy:frontend",
-    "deploy:backend": "cd backend && npx serverless deploy",
-    "deploy:frontend": "cd frontend && pnpm build && npx serverless deploy",
-    "deploy:function": "cd backend && npx serverless deploy function"
+    "deploy:backend": "cd backend && npx serverless deploy --verbose",
+    "deploy:frontend": "cd frontend && pnpm build && npx serverless deploy --verbose",
+    "deploy:function": "cd backend && npx serverless deploy function --verbose"
   },
   "engines": {
     "node": ">=20"
