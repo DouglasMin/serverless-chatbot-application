@@ -1,0 +1,296 @@
+openapi: 3.0.0
+info:
+  title: Simple Chatbot API
+  version: 1.0.0
+  description: API for a serverless chatbot powered by OpenAI GPT models
+
+servers:
+  - url: https://{apiId}.execute-api.{region}.amazonaws.com/{stage}
+    variables:
+      apiId:
+        default: "xxx"
+      region:
+        default: "us-east-1"
+      stage:
+        default: "dev"
+
+paths:
+  /conversations:
+    post:
+      operationId: createConversation
+      summary: Create a new conversation
+      description: "Implementation: backend/src/functions/createConversation.ts"
+      parameters:
+        - $ref: "#/components/parameters/SessionId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateConversationRequest"
+      responses:
+        "201":
+          description: Conversation created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreateConversationResponse"
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+
+    get:
+      operationId: listConversations
+      summary: List conversations for a session
+      description: "Implementation: backend/src/functions/listConversations.ts"
+      parameters:
+        - $ref: "#/components/parameters/SessionId"
+      responses:
+        "200":
+          description: List of conversations
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ListConversationsResponse"
+
+  /conversations/{conversationId}:
+    get:
+      operationId: getConversation
+      summary: Get a conversation with all messages
+      description: "Implementation: backend/src/functions/getConversation.ts"
+      parameters:
+        - $ref: "#/components/parameters/SessionId"
+        - $ref: "#/components/parameters/ConversationId"
+      responses:
+        "200":
+          description: Conversation with messages
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetConversationResponse"
+        "404":
+          description: Conversation not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+
+    patch:
+      operationId: updateConversation
+      summary: Update conversation metadata
+      description: "Implementation: backend/src/functions/updateConversation.ts"
+      parameters:
+        - $ref: "#/components/parameters/SessionId"
+        - $ref: "#/components/parameters/ConversationId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateConversationRequest"
+      responses:
+        "200":
+          description: Conversation updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UpdateConversationResponse"
+        "404":
+          description: Conversation not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+
+    delete:
+      operationId: deleteConversation
+      summary: Delete a conversation
+      description: "Implementation: backend/src/functions/deleteConversation.ts"
+      parameters:
+        - $ref: "#/components/parameters/SessionId"
+        - $ref: "#/components/parameters/ConversationId"
+      responses:
+        "204":
+          description: Conversation deleted
+        "404":
+          description: Conversation not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+
+  /chat/stream:
+    post:
+      operationId: chatStream
+      summary: Stream a chat completion
+      description: |
+        Implementation: backend/src/functions/chatStream.ts
+        Exposed via Lambda Function URL (not API Gateway).
+        Returns chunked SSE-style streaming response.
+      parameters:
+        - name: Authorization
+          in: header
+          required: true
+          schema:
+            type: string
+          description: "Bearer <OpenAI API key>"
+        - $ref: "#/components/parameters/SessionId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ChatStreamRequest"
+      responses:
+        "200":
+          description: Streaming SSE response with token events
+          content:
+            text/event-stream:
+              schema:
+                type: string
+        "401":
+          description: Invalid API key
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+
+components:
+  parameters:
+    SessionId:
+      name: x-session-id
+      in: header
+      required: true
+      schema:
+        type: string
+        minLength: 32
+      description: Cryptographically random session identifier
+
+    ConversationId:
+      name: conversationId
+      in: path
+      required: true
+      schema:
+        type: string
+
+  schemas:
+    GptModelId:
+      type: string
+      enum:
+        - gpt-5.4
+        - gpt-5.4-pro
+        - gpt-5-mini
+        - gpt-5-nano
+
+    CreateConversationRequest:
+      type: object
+      required:
+        - model
+      properties:
+        model:
+          $ref: "#/components/schemas/GptModelId"
+
+    CreateConversationResponse:
+      type: object
+      properties:
+        conversation:
+          $ref: "#/components/schemas/ConversationMetadata"
+
+    ListConversationsResponse:
+      type: object
+      properties:
+        conversations:
+          type: array
+          items:
+            $ref: "#/components/schemas/ConversationMetadata"
+
+    GetConversationResponse:
+      type: object
+      properties:
+        conversation:
+          $ref: "#/components/schemas/Conversation"
+
+    UpdateConversationRequest:
+      type: object
+      properties:
+        title:
+          type: string
+
+    UpdateConversationResponse:
+      type: object
+      properties:
+        conversation:
+          $ref: "#/components/schemas/ConversationMetadata"
+
+    ChatStreamRequest:
+      type: object
+      required:
+        - conversationId
+        - message
+      properties:
+        conversationId:
+          type: string
+        message:
+          type: string
+
+    ConversationMetadata:
+      type: object
+      properties:
+        conversationId:
+          type: string
+        sessionId:
+          type: string
+        title:
+          type: string
+        model:
+          $ref: "#/components/schemas/GptModelId"
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    Conversation:
+      allOf:
+        - $ref: "#/components/schemas/ConversationMetadata"
+        - type: object
+          properties:
+            messages:
+              type: array
+              items:
+                $ref: "#/components/schemas/Message"
+
+    Message:
+      type: object
+      properties:
+        messageId:
+          type: string
+        role:
+          type: string
+          enum: [user, assistant, system]
+        content:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+
+    StreamEvent:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [token, done, error]
+        data:
+          type: string
+
+    ApiError:
+      type: object
+      properties:
+        error:
+          type: string
+        code:
+          type: string

@@ -1,0 +1,140 @@
+service: chatbot-backend
+
+provider:
+  name: aws
+  runtime: nodejs20.x
+  stage: ${opt:stage, 'dev'}
+  region: ${opt:region, 'us-east-1'}
+  environment:
+    CONVERSATIONS_TABLE: ${self:service}-conversations-${sls:stage}
+    STAGE: ${sls:stage}
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - dynamodb:PutItem
+            - dynamodb:GetItem
+            - dynamodb:UpdateItem
+            - dynamodb:DeleteItem
+            - dynamodb:Query
+            - dynamodb:BatchWriteItem
+          Resource:
+            - !GetAtt ConversationsTable.Arn
+            - !Join ["", [!GetAtt ConversationsTable.Arn, "/index/*"]]
+
+  httpApi:
+    cors:
+      allowedOrigins:
+        - "*"
+      allowedHeaders:
+        - Content-Type
+        - x-session-id
+      allowedMethods:
+        - GET
+        - POST
+        - PATCH
+        - DELETE
+        - OPTIONS
+
+plugins:
+  - serverless-esbuild
+
+custom:
+  esbuild:
+    bundle: true
+    minify: false
+    sourcemap: true
+    target: node20
+    platform: node
+    external:
+      - "@aws-sdk/client-dynamodb"
+      - "@aws-sdk/lib-dynamodb"
+
+functions:
+  createConversation:
+    handler: src/functions/createConversation.handler
+    events:
+      - httpApi:
+          path: /conversations
+          method: post
+
+  listConversations:
+    handler: src/functions/listConversations.handler
+    events:
+      - httpApi:
+          path: /conversations
+          method: get
+
+  getConversation:
+    handler: src/functions/getConversation.handler
+    events:
+      - httpApi:
+          path: /conversations/{conversationId}
+          method: get
+
+  updateConversation:
+    handler: src/functions/updateConversation.handler
+    events:
+      - httpApi:
+          path: /conversations/{conversationId}
+          method: patch
+
+  deleteConversation:
+    handler: src/functions/deleteConversation.handler
+    events:
+      - httpApi:
+          path: /conversations/{conversationId}
+          method: delete
+
+  chatStream:
+    handler: src/functions/chatStream.handler
+    timeout: 120
+    url:
+      invokeMode: RESPONSE_STREAM
+      cors:
+        allowedOrigins:
+          - "*"
+        allowedHeaders:
+          - Content-Type
+          - Authorization
+          - x-session-id
+        allowedMethods:
+          - POST
+          - OPTIONS
+
+resources:
+  Resources:
+    ConversationsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:provider.environment.CONVERSATIONS_TABLE}
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: PK
+            AttributeType: S
+          - AttributeName: SK
+            AttributeType: S
+          - AttributeName: sessionId
+            AttributeType: S
+          - AttributeName: createdAt
+            AttributeType: S
+        KeySchema:
+          - AttributeName: PK
+            KeyType: HASH
+          - AttributeName: SK
+            KeyType: RANGE
+        GlobalSecondaryIndexes:
+          - IndexName: SessionIndex
+            KeySchema:
+              - AttributeName: sessionId
+                KeyType: HASH
+              - AttributeName: createdAt
+                KeyType: RANGE
+            Projection:
+              ProjectionType: ALL
+
+  Outputs:
+    ChatStreamUrl:
+      Description: Lambda Function URL for chat streaming
+      Value: !GetAtt ChatStreamLambdaFunctionUrl.FunctionUrl

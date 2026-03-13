@@ -1,0 +1,13 @@
+{
+  "name": "simple-chatbot-app",
+  "private": true,
+  "scripts": {
+    "deploy": "pnpm deploy:backend && pnpm deploy:frontend",
+    "deploy:backend": "cd backend && npx serverless deploy",
+    "deploy:frontend": "cd frontend && pnpm build && npx serverless deploy",
+    "deploy:function": "cd backend && npx serverless deploy function"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
