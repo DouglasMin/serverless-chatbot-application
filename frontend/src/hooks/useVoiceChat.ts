@@ -42,7 +42,7 @@ function float32ToPCM16Base64(float32: Float32Array): string {
   return btoa(bin);
 }
 
-function pcm16Base64ToFloat32(b64: string): Float32Array {
+function pcm16Base64ToFloat32(b64: string): Float32Array<ArrayBuffer> {
   const bin = atob(b64);
   const bytes = new Uint8Array(bin.length);
   for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
