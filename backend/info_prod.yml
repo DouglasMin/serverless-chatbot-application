@@ -1,0 +1,6 @@
+info:
+  title: chatbot-backend
+  description: Simple chatbot app with OpenAI GPT streaming
+  version: 1.0.0
+servers:
+  - url: https://rq5bxekz1e.execute-api.ap-northeast-2.amazonaws.com

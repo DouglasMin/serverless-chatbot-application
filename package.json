@@ -3,7 +3,7 @@
   "private": true,
   "scripts": {
     "deploy": "pnpm deploy:backend && pnpm deploy:frontend",
-    "deploy:backend": "cd backend && npx serverless deploy --verbose",
+    "deploy:backend": "cd backend && pnpm run deploy",
     "deploy:frontend": "cd frontend && pnpm build && npx serverless deploy --verbose",
     "deploy:function": "cd backend && npx serverless deploy function --verbose"
   },

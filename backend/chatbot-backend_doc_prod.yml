@@ -1,0 +1,203 @@
+openapi: 3.0.0
+info:
+  title: chatbot-backend
+  description: Simple chatbot app with OpenAI GPT streaming
+  version: 1.0.0
+servers:
+  - url: https://rq5bxekz1e.execute-api.ap-northeast-2.amazonaws.com
+paths:
+  /conversations/{conversationId}:
+    get:
+      description: Retrieves a single conversation with all its messages
+      summary: Get a conversation with messages
+      operationId: conversation/get
+      tags:
+        - Conversation
+      security:
+        - bearerAuth:
+            - test
+      parameters: []
+      responses:
+        '200':
+          description: Successfully retrieved conversation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  conversation:
+                    type: object
+                    properties:
+                      conversationId:
+                        type: string
+                      sessionId:
+                        type: string
+                      title:
+                        type: string
+                      model:
+                        type: string
+                      createdAt:
+                        type: string
+                      updatedAt:
+                        type: string
+                      messages:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            messageId:
+                              type: string
+                            role:
+                              type: string
+                            content:
+                              type: string
+                            createdAt:
+                              type: string
+                additionalProperties: true
+    delete:
+      description: Deletes a conversation and all its messages
+      summary: Delete a conversation
+      operationId: conversation/delete
+      tags:
+        - Conversation
+      security:
+        - bearerAuth:
+            - test
+      parameters: []
+      responses:
+        '204':
+          description: Conversation deleted successfully
+    patch:
+      description: Updates the title of a conversation
+      summary: Update a conversation
+      operationId: conversation/patch
+      tags:
+        - Conversation
+      security:
+        - bearerAuth:
+            - test
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                  description: New title for the conversation
+              additionalProperties: false
+      responses:
+        '200':
+          description: Conversation updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  conversation:
+                    type: object
+                    properties:
+                      conversationId:
+                        type: string
+                      sessionId:
+                        type: string
+                      title:
+                        type: string
+                      model:
+                        type: string
+                      createdAt:
+                        type: string
+                      updatedAt:
+                        type: string
+                additionalProperties: true
+  /conversations:
+    post:
+      description: Creates a new conversation with the specified GPT model
+      summary: Create a new conversation
+      operationId: conversations/post
+      tags:
+        - Conversations
+      security:
+        - bearerAuth:
+            - test
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                model:
+                  type: string
+                  description: GPT model ID to use for the conversation
+              required:
+                - model
+              additionalProperties: false
+      responses:
+        '201':
+          description: Conversation created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  conversation:
+                    type: object
+                    properties:
+                      conversationId:
+                        type: string
+                      sessionId:
+                        type: string
+                      title:
+                        type: string
+                      model:
+                        type: string
+                      createdAt:
+                        type: string
+                      updatedAt:
+                        type: string
+                additionalProperties: true
+    get:
+      description: Lists all conversations for the current session
+      summary: List all conversations
+      operationId: conversations/get
+      tags:
+        - Conversations
+      security:
+        - bearerAuth:
+            - test
+      parameters: []
+      responses:
+        '200':
+          description: Successfully retrieved conversations
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  conversations:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        conversationId:
+                          type: string
+                        sessionId:
+                          type: string
+                        title:
+                          type: string
+                        model:
+                          type: string
+                        createdAt:
+                          type: string
+                        updatedAt:
+                          type: string
+                additionalProperties: true
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer

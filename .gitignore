@@ -8,3 +8,4 @@ dist/
 !.env.production
 *.js.map
 _demo-*/
+backend/src/lambda/

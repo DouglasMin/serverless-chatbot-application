@@ -1,17 +1,15 @@
 {
+  "include": ["trc/**/*.ts"],
   "compilerOptions": {
-    "target": "ES2022",
+    "target": "ESNext",
     "module": "ESNext",
-    "moduleResolution": "bundler",
+    "moduleResolution": "node",
+    "rootDir": "./trc",
+    "outDir": "./src",
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-    "resolveJsonModule": true,
-    "outDir": "./dist",
-    "paths": {
-      "@chatbot/shared": ["../shared/types"]
-    }
-  },
-  "include": ["src/**/*.ts", "../shared/**/*.ts"]
+    "resolveJsonModule": true
+  }
 }

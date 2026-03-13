@@ -5,7 +5,7 @@ useDotenv: true
 provider:
   name: aws
   region: ${env:AWS_REGION, 'ap-northeast-2'}
-  stage: ${env:STAGE, 'dev'}
+  stage: dev
   profile: ${env:AWS_PROFILE, 'dongik2'}
 
 plugins:
