@@ -21,6 +21,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
       role: item.role,
       content: item.content,
       createdAt: item.createdAt,
+      ...(item.source ? { source: item.source } : {}),
     }));
 
     return json(200, {

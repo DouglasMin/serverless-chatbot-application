@@ -1,8 +1,12 @@
 import { useEffect, useRef } from "react";
 import { useVoiceChat, type VoiceStatus, type VoiceMessage } from "../hooks/useVoiceChat";
 
+import type { RealtimeVoiceId } from "@chatbot/shared";
+
 interface Props {
   apiKey: string;
+  conversationId: string;
+  voice: RealtimeVoiceId;
   onClose: () => void;
 }
 
@@ -115,9 +119,9 @@ function Bubble({ msg }: { msg: VoiceMessage }) {
 }
 
 // ── Main VoiceChat component ──────────────────────────────────────────────────
-export default function VoiceChat({ apiKey, onClose }: Props) {
+export default function VoiceChat({ apiKey, conversationId, voice, onClose }: Props) {
   const { status, error, messages, micLevel, aiLevel, startSession, stopSession } =
-    useVoiceChat(apiKey);
+    useVoiceChat(apiKey, conversationId, voice);
 
   const bottomRef = useRef<HTMLDivElement>(null);
 

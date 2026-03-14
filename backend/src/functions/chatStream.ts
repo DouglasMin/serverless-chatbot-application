@@ -104,8 +104,8 @@ const handler = awslambda.streamifyResponse(
         createdAt: new Date().toISOString(),
       });
 
-      // Auto-title on first message
-      if (allMessages.length === 0) {
+      // Auto-title on first message (allMessages already includes the just-saved user msg)
+      if (allMessages.length === 1) {
         const autoTitle = body.message.slice(0, 50) + (body.message.length > 50 ? "..." : "");
         await updateConversationMetadata(body.conversationId, {
           title: autoTitle,

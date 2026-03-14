@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect } from "react";
-import type { GptModelId } from "@chatbot/shared";
+import type { GptModelId, RealtimeVoiceId } from "@chatbot/shared";
+import { REALTIME_VOICES } from "@chatbot/shared";
 import { useApiKey } from "./hooks/useApiKey";
 import { useConversations } from "./hooks/useConversations";
 import { useChat } from "./hooks/useChat";
@@ -20,6 +21,7 @@ export default function App() {
     create,
     remove,
     updateTitle,
+    refresh,
   } = useConversations();
   const {
     messages,
@@ -34,7 +36,8 @@ export default function App() {
   const [showSettings, setShowSettings] = useState(false);
   const [selectedModel, setSelectedModel] = useState<GptModelId>("gpt-5.4");
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [voiceOpen, setVoiceOpen] = useState(false);
+  const [voiceConvId, setVoiceConvId] = useState<string | null>(null);
+  const [selectedVoice, setSelectedVoice] = useState<RealtimeVoiceId>("alloy");
 
   const activeConv = conversations.find((c) => c.conversationId === activeId);
 
@@ -63,6 +66,20 @@ export default function App() {
     },
     [apiKey, activeId, sendMessage, updateTitle]
   );
+
+  const handleStartVoice = useCallback(async () => {
+    // Create a new conversation for the voice session, just like "New Chat"
+    const conv = await create(selectedModel);
+    if (conv) {
+      setVoiceConvId(conv.conversationId);
+    }
+  }, [create, selectedModel]);
+
+  const handleCloseVoice = useCallback(() => {
+    setVoiceConvId(null);
+    // Refresh sidebar to show updated voice conversation title
+    refresh();
+  }, [refresh]);
 
   const handleChangeKey = useCallback(() => {
     clearApiKey();
@@ -119,9 +136,18 @@ export default function App() {
           )}
 
           {/* Voice chat shortcut in header */}
-          <div className="ml-auto">
+          <div className="ml-auto flex items-center gap-2">
+            <select
+              value={selectedVoice}
+              onChange={(e) => setSelectedVoice(e.target.value as RealtimeVoiceId)}
+              className="rounded-lg border border-surface-700 bg-surface-850 px-2 py-1.5 text-xs text-surface-300 outline-none focus:border-violet-500"
+            >
+              {REALTIME_VOICES.map((v) => (
+                <option key={v.id} value={v.id}>{v.name}</option>
+              ))}
+            </select>
             <button
-              onClick={() => setVoiceOpen(true)}
+              onClick={handleStartVoice}
               title="Start live voice chat"
               className="flex items-center gap-1.5 rounded-lg border border-surface-700 bg-surface-850 px-3 py-1.5 text-xs font-medium text-surface-300 transition hover:border-violet-500 hover:bg-violet-600/10 hover:text-violet-300"
             >
@@ -149,7 +175,7 @@ export default function App() {
             <MessageInput
               onSend={handleSend}
               disabled={isStreaming}
-              onVoice={() => setVoiceOpen(true)}
+              onVoice={handleStartVoice}
             />
           </>
         ) : (
@@ -164,7 +190,7 @@ export default function App() {
                 New Chat
               </button>
               <button
-                onClick={() => setVoiceOpen(true)}
+                onClick={handleStartVoice}
                 className="flex items-center gap-2 rounded-lg border border-violet-700 bg-violet-600/10 px-5 py-2.5 text-sm font-medium text-violet-300 transition hover:bg-violet-600/20"
               >
                 <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -191,8 +217,13 @@ export default function App() {
       )}
 
       {/* Full-screen voice overlay — renders on top of everything */}
-      {voiceOpen && apiKey && (
-        <VoiceChat apiKey={apiKey} onClose={() => setVoiceOpen(false)} />
+      {voiceConvId && apiKey && (
+        <VoiceChat
+          apiKey={apiKey}
+          conversationId={voiceConvId}
+          voice={selectedVoice}
+          onClose={handleCloseVoice}
+        />
       )}
     </div>
   );
