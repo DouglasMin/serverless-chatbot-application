@@ -75,6 +75,23 @@ export async function deleteConversation(id: string): Promise<void> {
   if (!res.ok) throw new Error("Failed to delete conversation");
 }
 
+export async function createVoiceSession(
+  apiKey: string
+): Promise<{ clientSecret: string; sessionId: string }> {
+  const res = await fetch(`${API_BASE}/voice/session`, {
+    method: "POST",
+    headers: {
+      ...headers(),
+      Authorization: `Bearer ${apiKey}`,
+    },
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error((body as any).error ?? "Failed to create voice session");
+  }
+  return res.json();
+}
+
 export async function* streamChat(
   conversationId: string,
   message: string,

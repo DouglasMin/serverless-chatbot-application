@@ -9,6 +9,7 @@ import ChatArea from "./components/ChatArea";
 import MessageInput from "./components/MessageInput";
 import ModelSelector from "./components/ModelSelector";
 import SettingsPanel from "./components/SettingsPanel";
+import VoiceChat from "./components/VoiceChat";
 
 export default function App() {
   const { apiKey, setApiKey, clearApiKey, hasApiKey } = useApiKey();
@@ -33,9 +34,9 @@ export default function App() {
   const [showSettings, setShowSettings] = useState(false);
   const [selectedModel, setSelectedModel] = useState<GptModelId>("gpt-5.4");
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [voiceOpen, setVoiceOpen] = useState(false);
 
   const activeConv = conversations.find((c) => c.conversationId === activeId);
-  const hasMessages = messages.length > 0;
 
   useEffect(() => {
     if (activeId) {
@@ -116,6 +117,25 @@ export default function App() {
               <ModelSelector value={selectedModel} onChange={setSelectedModel} />
             </div>
           )}
+
+          {/* Voice chat shortcut in header */}
+          <div className="ml-auto">
+            <button
+              onClick={() => setVoiceOpen(true)}
+              title="Start live voice chat"
+              className="flex items-center gap-1.5 rounded-lg border border-surface-700 bg-surface-850 px-3 py-1.5 text-xs font-medium text-surface-300 transition hover:border-violet-500 hover:bg-violet-600/10 hover:text-violet-300"
+            >
+              <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"
+                />
+              </svg>
+              Voice
+            </button>
+          </div>
         </header>
 
         {activeId ? (
@@ -126,18 +146,38 @@ export default function App() {
               isStreaming={isStreaming}
               error={error}
             />
-            <MessageInput onSend={handleSend} disabled={isStreaming} />
+            <MessageInput
+              onSend={handleSend}
+              disabled={isStreaming}
+              onVoice={() => setVoiceOpen(true)}
+            />
           </>
         ) : (
           <div className="flex flex-1 flex-col items-center justify-center gap-4">
             <h2 className="text-xl font-semibold text-white">No conversation selected</h2>
             <p className="text-sm text-surface-400">Create a new chat or select one from the sidebar.</p>
-            <button
-              onClick={() => handleNewChat(selectedModel)}
-              className="rounded-lg bg-primary-600 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-primary-500"
-            >
-              New Chat
-            </button>
+            <div className="flex gap-3">
+              <button
+                onClick={() => handleNewChat(selectedModel)}
+                className="rounded-lg bg-primary-600 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-primary-500"
+              >
+                New Chat
+              </button>
+              <button
+                onClick={() => setVoiceOpen(true)}
+                className="flex items-center gap-2 rounded-lg border border-violet-700 bg-violet-600/10 px-5 py-2.5 text-sm font-medium text-violet-300 transition hover:bg-violet-600/20"
+              >
+                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"
+                  />
+                </svg>
+                Live Voice Chat
+              </button>
+            </div>
           </div>
         )}
       </main>
@@ -148,6 +188,11 @@ export default function App() {
           onChangeKey={handleChangeKey}
           onClose={() => setShowSettings(false)}
         />
+      )}
+
+      {/* Full-screen voice overlay — renders on top of everything */}
+      {voiceOpen && apiKey && (
+        <VoiceChat apiKey={apiKey} onClose={() => setVoiceOpen(false)} />
       )}
     </div>
   );

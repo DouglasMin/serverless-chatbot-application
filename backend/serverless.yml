@@ -41,6 +41,7 @@ provider:
       allowedHeaders:
         - Content-Type
         - x-session-id
+        - Authorization
       allowedMethods:
         - GET
         - POST
@@ -97,6 +98,14 @@ functions:
       - httpApi:
           path: /conversations/{conversationId}
           method: delete
+
+  createVoiceSession:
+    handler: src/functions/createVoiceSession.handler
+    timeout: 30
+    events:
+      - httpApi:
+          path: /voice/session
+          method: post
 
   chatStream:
     handler: src/functions/chatStream.handler
