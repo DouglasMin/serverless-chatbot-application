@@ -37,25 +37,49 @@ export default function ApiKeySetup({ onSubmit }: Props) {
 
   return (
     <div className="flex h-dvh items-center justify-center bg-surface-950 p-4">
-      <div className="w-full max-w-md rounded-2xl bg-surface-900 p-8 shadow-2xl">
-        <h1 className="mb-2 text-2xl font-semibold text-white">Welcome</h1>
-        <p className="mb-6 text-sm text-surface-300">
-          Enter your OpenAI API key to get started. Your key is stored locally
-          and never saved on our servers.
+      <div
+        className="w-full max-w-md rounded-3xl border border-surface-800/60 bg-surface-900/80 p-10 shadow-2xl backdrop-blur-sm"
+        style={{ animation: "slide-up 0.5s ease-out both" }}
+      >
+        {/* Decorative accent line */}
+        <div className="mb-8 h-1 w-10 rounded-full bg-primary-500" />
+
+        <h1 className="mb-2 font-display text-3xl font-600 tracking-tight text-surface-100">
+          Welcome
+        </h1>
+        <p className="mb-8 text-sm leading-relaxed text-surface-400">
+          Enter your OpenAI API key to get started.
+          <br />
+          <span className="text-surface-500">
+            Stored locally in your browser, never on our servers.
+          </span>
         </p>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <input
-            type="password"
-            value={key}
-            onChange={(e) => setKey(e.target.value)}
-            placeholder="sk-..."
-            className="w-full rounded-lg border border-surface-700 bg-surface-850 px-4 py-3 text-sm text-white placeholder-surface-500 outline-none transition focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
-          />
-          {error && <p className="text-sm text-red-400">{error}</p>}
+
+        <form onSubmit={handleSubmit} className="space-y-5">
+          <div>
+            <label className="mb-2 block text-xs font-500 uppercase tracking-widest text-surface-500">
+              API Key
+            </label>
+            <input
+              type="password"
+              value={key}
+              onChange={(e) => setKey(e.target.value)}
+              placeholder="sk-..."
+              autoFocus
+              className="w-full rounded-xl border border-surface-700/60 bg-surface-850 px-4 py-3.5 font-mono text-sm text-surface-100 placeholder-surface-600 outline-none transition-all duration-200 focus:border-primary-500/60 focus:ring-2 focus:ring-primary-500/15"
+            />
+          </div>
+
+          {error && (
+            <p className="rounded-lg bg-red-950/30 px-3 py-2 text-sm text-red-400">
+              {error}
+            </p>
+          )}
+
           <button
             type="submit"
             disabled={loading || !key}
-            className="w-full rounded-lg bg-primary-600 px-4 py-3 text-sm font-medium text-white transition hover:bg-primary-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full rounded-xl bg-primary-600 px-4 py-3.5 text-sm font-600 text-white transition-all duration-200 hover:bg-primary-500 hover:shadow-lg hover:shadow-primary-600/20 disabled:cursor-not-allowed disabled:opacity-40"
           >
             {loading ? "Validating..." : "Get Started"}
           </button>

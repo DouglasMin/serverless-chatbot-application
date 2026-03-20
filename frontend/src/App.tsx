@@ -68,7 +68,6 @@ export default function App() {
   );
 
   const handleStartVoice = useCallback(async () => {
-    // Create a new conversation for the voice session, just like "New Chat"
     const conv = await create(selectedModel);
     if (conv) {
       setVoiceConvId(conv.conversationId);
@@ -77,7 +76,6 @@ export default function App() {
 
   const handleCloseVoice = useCallback(() => {
     setVoiceConvId(null);
-    // Refresh sidebar to show updated voice conversation title
     refresh();
   }, [refresh]);
 
@@ -91,7 +89,7 @@ export default function App() {
   }
 
   return (
-    <div className="flex h-dvh bg-surface-950 text-white">
+    <div className="flex h-dvh bg-surface-950 text-surface-100">
       {sidebarOpen && (
         <Sidebar
           conversations={conversations}
@@ -105,19 +103,24 @@ export default function App() {
       )}
 
       <main className="flex flex-1 flex-col">
-        <header className="flex items-center gap-3 border-b border-surface-800 px-4 py-2.5">
+        {/* Header */}
+        <header className="flex items-center gap-3 border-b border-surface-800/40 px-5 py-3">
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="rounded-lg p-1.5 text-surface-400 transition hover:bg-surface-800 hover:text-white"
+            className="rounded-lg p-1.5 text-surface-500 transition-colors duration-150 hover:text-surface-200"
           >
-            <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+            <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+              {sidebarOpen ? (
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+              ) : (
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+              )}
             </svg>
           </button>
 
           {activeConv && (
             <>
-              <span className="text-sm font-medium text-white truncate">
+              <span className="font-display text-sm font-500 text-surface-200 truncate">
                 {activeConv.title}
               </span>
               <ModelSelector
@@ -129,18 +132,18 @@ export default function App() {
           )}
 
           {!activeId && (
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-surface-400">Model:</span>
+            <div className="flex items-center gap-2.5">
+              <span className="text-[12px] font-500 uppercase tracking-wider text-surface-500">Model</span>
               <ModelSelector value={selectedModel} onChange={setSelectedModel} />
             </div>
           )}
 
-          {/* Voice chat shortcut in header */}
+          {/* Voice controls */}
           <div className="ml-auto flex items-center gap-2">
             <select
               value={selectedVoice}
               onChange={(e) => setSelectedVoice(e.target.value as RealtimeVoiceId)}
-              className="rounded-lg border border-surface-700 bg-surface-850 px-2 py-1.5 text-xs text-surface-300 outline-none focus:border-violet-500"
+              className="rounded-lg border border-surface-700/40 bg-surface-900/60 px-2.5 py-1.5 text-[12px] text-surface-400 outline-none transition-colors focus:border-primary-500/40"
             >
               {REALTIME_VOICES.map((v) => (
                 <option key={v.id} value={v.id}>{v.name}</option>
@@ -149,13 +152,12 @@ export default function App() {
             <button
               onClick={handleStartVoice}
               title="Start live voice chat"
-              className="flex items-center gap-1.5 rounded-lg border border-surface-700 bg-surface-850 px-3 py-1.5 text-xs font-medium text-surface-300 transition hover:border-violet-500 hover:bg-violet-600/10 hover:text-violet-300"
+              className="flex items-center gap-1.5 rounded-lg border border-surface-700/40 bg-surface-900/60 px-3 py-1.5 text-[12px] font-500 text-surface-400 transition-all duration-150 hover:border-primary-500/40 hover:text-primary-400"
             >
-              <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
-                  strokeWidth={2}
                   d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"
                 />
               </svg>
@@ -164,6 +166,7 @@ export default function App() {
           </div>
         </header>
 
+        {/* Content */}
         {activeId ? (
           <>
             <ChatArea
@@ -179,29 +182,40 @@ export default function App() {
             />
           </>
         ) : (
-          <div className="flex flex-1 flex-col items-center justify-center gap-4">
-            <h2 className="text-xl font-semibold text-white">No conversation selected</h2>
-            <p className="text-sm text-surface-400">Create a new chat or select one from the sidebar.</p>
-            <div className="flex gap-3">
+          <div
+            className="flex flex-1 flex-col items-center justify-center gap-5"
+            style={{ animation: "fade-in 0.4s ease-out both" }}
+          >
+            <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-surface-800/40">
+              <svg className="h-7 w-7 text-surface-500" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.087.16 2.185.283 3.293.369V21l4.076-4.076a1.526 1.526 0 011.037-.443 48.282 48.282 0 005.68-.494c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0012 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018z" />
+              </svg>
+            </div>
+            <div className="text-center">
+              <h2 className="mb-1 font-display text-xl font-600 text-surface-200">
+                What can I help with?
+              </h2>
+              <p className="text-sm text-surface-500">Start a new chat or pick up where you left off.</p>
+            </div>
+            <div className="flex gap-3 pt-2">
               <button
                 onClick={() => handleNewChat(selectedModel)}
-                className="rounded-lg bg-primary-600 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-primary-500"
+                className="rounded-xl bg-primary-600 px-6 py-2.5 text-sm font-500 text-white transition-all duration-150 hover:bg-primary-500 hover:shadow-lg hover:shadow-primary-600/20"
               >
                 New Chat
               </button>
               <button
                 onClick={handleStartVoice}
-                className="flex items-center gap-2 rounded-lg border border-violet-700 bg-violet-600/10 px-5 py-2.5 text-sm font-medium text-violet-300 transition hover:bg-violet-600/20"
+                className="flex items-center gap-2 rounded-xl border border-primary-600/30 bg-primary-600/8 px-6 py-2.5 text-sm font-500 text-primary-400 transition-all duration-150 hover:bg-primary-600/15"
               >
-                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
-                    strokeWidth={2}
                     d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"
                   />
                 </svg>
-                Live Voice Chat
+                Voice Chat
               </button>
             </div>
           </div>
@@ -216,7 +230,6 @@ export default function App() {
         />
       )}
 
-      {/* Full-screen voice overlay — renders on top of everything */}
       {voiceConvId && apiKey && (
         <VoiceChat
           apiKey={apiKey}

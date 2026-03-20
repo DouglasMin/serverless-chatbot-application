@@ -38,9 +38,9 @@ export const handler = async (
           "You are a helpful, friendly AI assistant. Keep your spoken responses conversational, concise, and natural. Avoid bullet points or markdown in speech.",
         turn_detection: {
           type: "server_vad",
-          threshold: 0.5,
+          threshold: 0.75,
           prefix_padding_ms: 300,
-          silence_duration_ms: 600,
+          silence_duration_ms: 500,
         },
         input_audio_transcription: {
           model: "whisper-1",
