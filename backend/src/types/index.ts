@@ -16,4 +16,5 @@ export interface MessageItem {
   content: string;
   createdAt: string;
   partial?: boolean;
+  source?: "text" | "voice";
 }

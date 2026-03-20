@@ -25,6 +25,7 @@ export interface Message {
   role: "user" | "assistant" | "system";
   content: string;
   createdAt: string;
+  source?: MessageSource;
 }
 
 export interface Conversation extends ConversationMetadata {
@@ -61,6 +62,34 @@ export interface ChatStreamRequest {
   conversationId: string;
   message: string;
 }
+
+// === Voice ===
+
+export const REALTIME_VOICES = [
+  { id: "alloy", name: "Alloy" },
+  { id: "ash", name: "Ash" },
+  { id: "ballad", name: "Ballad" },
+  { id: "coral", name: "Coral" },
+  { id: "echo", name: "Echo" },
+  { id: "sage", name: "Sage" },
+  { id: "shimmer", name: "Shimmer" },
+  { id: "verse", name: "Verse" },
+  { id: "marin", name: "Marin" },
+  { id: "cedar", name: "Cedar" },
+] as const;
+
+export type RealtimeVoiceId = (typeof REALTIME_VOICES)[number]["id"];
+
+export interface CreateVoiceSessionRequest {
+  voice?: RealtimeVoiceId;
+}
+
+export interface CreateVoiceSessionResponse {
+  clientSecret: string;
+  sessionId: string;
+}
+
+export type MessageSource = "text" | "voice";
 
 export interface StreamEvent {
   type: "token" | "done" | "error";

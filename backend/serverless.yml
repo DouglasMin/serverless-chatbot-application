@@ -107,6 +107,13 @@ functions:
           path: /voice/session
           method: post
 
+  saveVoiceMessage:
+    handler: src/functions/saveVoiceMessage.handler
+    events:
+      - httpApi:
+          path: /conversations/{conversationId}/voice-messages
+          method: post
+
   chatStream:
     handler: src/functions/chatStream.handler
     timeout: 120
