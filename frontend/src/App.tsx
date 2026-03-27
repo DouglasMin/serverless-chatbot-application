@@ -103,56 +103,50 @@ export default function App() {
       )}
 
       <main className="flex flex-1 flex-col">
-        {/* Header */}
         <header className="flex items-center gap-3 border-b border-surface-800/40 px-5 py-3">
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="rounded-lg p-1.5 text-surface-500 transition-colors duration-150 hover:text-surface-200"
+            aria-label={sidebarOpen ? "Close sidebar" : "Open sidebar"}
+            className="rounded-lg p-1.5 text-surface-500 transition-colors duration-150 hover:text-surface-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/50"
           >
             <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
-              {sidebarOpen ? (
-                <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
-              ) : (
-                <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
-              )}
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
             </svg>
           </button>
 
-          {activeConv && (
-            <>
-              <span className="font-display text-sm font-500 text-surface-200 truncate">
-                {activeConv.title}
-              </span>
-              <ModelSelector
-                value={activeConv.model as GptModelId}
-                onChange={() => {}}
-                disabled
-              />
-            </>
-          )}
+          <div className="min-w-0 flex-1">
+            {activeConv ? (
+              <div className="flex min-w-0 items-center gap-3">
+                <span className="truncate font-display text-sm font-medium text-surface-200" title={activeConv.title}>
+                  {activeConv.title}
+                </span>
+                <ModelSelector value={activeConv.model as GptModelId} onChange={() => {}} disabled />
+              </div>
+            ) : (
+              <div className="flex items-center gap-2.5">
+                <span className="text-[12px] font-medium uppercase tracking-wider text-surface-500">Model</span>
+                <ModelSelector value={selectedModel} onChange={setSelectedModel} />
+              </div>
+            )}
+          </div>
 
-          {!activeId && (
-            <div className="flex items-center gap-2.5">
-              <span className="text-[12px] font-500 uppercase tracking-wider text-surface-500">Model</span>
-              <ModelSelector value={selectedModel} onChange={setSelectedModel} />
-            </div>
-          )}
-
-          {/* Voice controls */}
           <div className="ml-auto flex items-center gap-2">
             <select
               value={selectedVoice}
               onChange={(e) => setSelectedVoice(e.target.value as RealtimeVoiceId)}
-              className="rounded-lg border border-surface-700/40 bg-surface-900/60 px-2.5 py-1.5 text-[12px] text-surface-400 outline-none transition-colors focus:border-primary-500/40"
+              aria-label="Select voice"
+              className="rounded-lg border border-surface-700/40 bg-surface-900/60 px-2.5 py-1.5 text-[12px] text-surface-300 outline-none transition-colors focus:border-primary-500/40 focus-visible:ring-2 focus-visible:ring-primary-500/40"
             >
               {REALTIME_VOICES.map((v) => (
-                <option key={v.id} value={v.id}>{v.name}</option>
+                <option key={v.id} value={v.id}>
+                  {v.name}
+                </option>
               ))}
             </select>
             <button
               onClick={handleStartVoice}
               title="Start live voice chat"
-              className="flex items-center gap-1.5 rounded-lg border border-surface-700/40 bg-surface-900/60 px-3 py-1.5 text-[12px] font-500 text-surface-400 transition-all duration-150 hover:border-primary-500/40 hover:text-primary-400"
+              className="flex items-center gap-1.5 rounded-lg border border-surface-700/40 bg-surface-900/60 px-3 py-1.5 text-[12px] font-medium text-surface-300 transition-all duration-150 hover:border-primary-500/40 hover:text-primary-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/40"
             >
               <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                 <path
@@ -166,7 +160,6 @@ export default function App() {
           </div>
         </header>
 
-        {/* Content */}
         {activeId ? (
           <>
             <ChatArea
@@ -175,15 +168,11 @@ export default function App() {
               isStreaming={isStreaming}
               error={error}
             />
-            <MessageInput
-              onSend={handleSend}
-              disabled={isStreaming}
-              onVoice={handleStartVoice}
-            />
+            <MessageInput onSend={handleSend} disabled={isStreaming} onVoice={handleStartVoice} />
           </>
         ) : (
           <div
-            className="flex flex-1 flex-col items-center justify-center gap-5"
+            className="flex flex-1 flex-col items-center justify-center gap-5 px-6 text-center"
             style={{ animation: "fade-in 0.4s ease-out both" }}
           >
             <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-surface-800/40">
@@ -191,24 +180,22 @@ export default function App() {
                 <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.087.16 2.185.283 3.293.369V21l4.076-4.076a1.526 1.526 0 011.037-.443 48.282 48.282 0 005.68-.494c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0012 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018z" />
               </svg>
             </div>
-            <div className="text-center">
-              <h2 className="mb-1 font-display text-xl font-600 text-surface-200">
-                What can I help with?
-              </h2>
+            <div>
+              <h2 className="mb-1 font-display text-xl font-semibold text-surface-200">What can I help with?</h2>
               <p className="text-sm text-surface-500">Start a new chat or pick up where you left off.</p>
             </div>
-            <div className="flex gap-3 pt-2">
+            <div className="flex flex-wrap justify-center gap-3 pt-2">
               <button
                 onClick={() => handleNewChat(selectedModel)}
-                className="rounded-xl bg-primary-600 px-6 py-2.5 text-sm font-500 text-white transition-all duration-150 hover:bg-primary-500 hover:shadow-lg hover:shadow-primary-600/20"
+                className="rounded-xl bg-primary-600 px-6 py-2.5 text-sm font-medium text-white transition-all duration-150 hover:bg-primary-500 hover:shadow-lg hover:shadow-primary-600/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/50"
               >
                 New Chat
               </button>
               <button
                 onClick={handleStartVoice}
-                className="flex items-center gap-2 rounded-xl border border-primary-600/30 bg-primary-600/8 px-6 py-2.5 text-sm font-500 text-primary-400 transition-all duration-150 hover:bg-primary-600/15"
+                className="flex items-center gap-2 rounded-xl border border-primary-600/30 bg-primary-600/8 px-6 py-2.5 text-sm font-medium text-primary-400 transition-all duration-150 hover:bg-primary-600/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/40"
               >
-                <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                <svg className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 24 24">
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -223,11 +210,7 @@ export default function App() {
       </main>
 
       {showSettings && apiKey && (
-        <SettingsPanel
-          apiKey={apiKey}
-          onChangeKey={handleChangeKey}
-          onClose={() => setShowSettings(false)}
-        />
+        <SettingsPanel apiKey={apiKey} onChangeKey={handleChangeKey} onClose={() => setShowSettings(false)} />
       )}
 
       {voiceConvId && apiKey && (
