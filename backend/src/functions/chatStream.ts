@@ -8,6 +8,7 @@ import {
 } from "../lib/dynamo.js";
 import { createOpenAIClient } from "../lib/openai.js";
 import { buildPromptMessages } from "../lib/summarizer.js";
+import { validateSessionId, SessionError } from "../lib/session.js";
 import type { ChatStreamRequest } from "../../../shared/types.js";
 
 const handler = awslambda.streamifyResponse(
@@ -31,12 +32,7 @@ const handler = awslambda.streamifyResponse(
         return;
       }
 
-      const sessionId = headers["x-session-id"];
-      if (!sessionId || sessionId.length < 32) {
-        write({ type: "error", data: "Missing or invalid x-session-id" });
-        responseStream.end();
-        return;
-      }
+      const sessionId = validateSessionId(headers["x-session-id"]);
 
       const body: ChatStreamRequest = JSON.parse(event.body ?? "{}");
       if (!body.conversationId || !body.message) {
@@ -52,7 +48,6 @@ const handler = awslambda.streamifyResponse(
         return;
       }
 
-      // Save user message
       const userMessageId = ulid();
       const now = new Date().toISOString();
       await putItem({
@@ -63,10 +58,7 @@ const handler = awslambda.streamifyResponse(
         createdAt: now,
       });
 
-      // Get all messages for context
       const allMessages = await getConversationMessages(body.conversationId);
-
-      // Build prompt with summarization
       const openai = createOpenAIClient(apiKey);
       const { promptMessages, newSummary } = await buildPromptMessages(
         openai,
@@ -77,7 +69,6 @@ const handler = awslambda.streamifyResponse(
 
       promptMessages.push({ role: "user", content: body.message });
 
-      // Stream from OpenAI
       const stream = await openai.chat.completions.create({
         model: convMeta.model,
         messages: promptMessages,
@@ -94,7 +85,6 @@ const handler = awslambda.streamifyResponse(
         }
       }
 
-      // Save assistant message
       const assistantMessageId = ulid();
       await putItem({
         PK: convPK(body.conversationId),
@@ -104,7 +94,6 @@ const handler = awslambda.streamifyResponse(
         createdAt: new Date().toISOString(),
       });
 
-      // Auto-title on first message (allMessages already includes the just-saved user msg)
       if (allMessages.length === 1) {
         const autoTitle = body.message.slice(0, 50) + (body.message.length > 50 ? "..." : "");
         await updateConversationMetadata(body.conversationId, {
@@ -113,7 +102,6 @@ const handler = awslambda.streamifyResponse(
         });
       }
 
-      // Save new summary if generated
       if (newSummary) {
         await updateConversationMetadata(body.conversationId, {
           summaryContext: newSummary,
@@ -125,7 +113,9 @@ const handler = awslambda.streamifyResponse(
     } catch (err: any) {
       console.error("chatStream error:", err);
 
-      if (err?.status === 401) {
+      if (err instanceof SessionError) {
+        write({ type: "error", data: err.message });
+      } else if (err?.status === 401) {
         write({ type: "error", data: "Invalid API key" });
       } else if (err?.status === 429) {
         write({ type: "error", data: "Rate limited. Please wait and try again." });
