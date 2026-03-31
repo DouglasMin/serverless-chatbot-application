@@ -19,6 +19,7 @@ provider:
   environment:
     CONVERSATIONS_TABLE: ${self:service}-conversations-${sls:stage}
     STAGE: ${sls:stage}
+    FRONTEND_ORIGIN: ${env:FRONTEND_ORIGIN, 'http://localhost:5173'}
   iam:
     role:
       statements:
@@ -37,7 +38,7 @@ provider:
   httpApi:
     cors:
       allowedOrigins:
-        - "*"
+        - ${self:provider.environment.FRONTEND_ORIGIN}
       allowedHeaders:
         - Content-Type
         - x-session-id
@@ -121,7 +122,7 @@ functions:
       invokeMode: RESPONSE_STREAM
       cors:
         allowedOrigins:
-          - "*"
+          - ${self:provider.environment.FRONTEND_ORIGIN}
         allowedHeaders:
           - Content-Type
           - Authorization
