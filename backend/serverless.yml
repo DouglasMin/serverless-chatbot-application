@@ -19,6 +19,7 @@ provider:
   environment:
     CONVERSATIONS_TABLE: ${self:service}-conversations-${sls:stage}
     STAGE: ${sls:stage}
+    ALLOWED_ORIGINS: ${env:ALLOWED_ORIGINS, 'http://localhost:3000'}
   iam:
     role:
       statements:
@@ -36,8 +37,7 @@ provider:
 
   httpApi:
     cors:
-      allowedOrigins:
-        - "*"
+      allowedOrigins: ${split(',', env:ALLOWED_ORIGINS, 'http://localhost:3000')}
       allowedHeaders:
         - Content-Type
         - x-session-id
@@ -120,8 +120,7 @@ functions:
     url:
       invokeMode: RESPONSE_STREAM
       cors:
-        allowedOrigins:
-          - "*"
+        allowedOrigins: ${split(',', env:ALLOWED_ORIGINS, 'http://localhost:3000')}
         allowedHeaders:
           - Content-Type
           - Authorization
