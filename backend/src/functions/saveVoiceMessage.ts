@@ -4,6 +4,11 @@ import { getConversationMetadata, putItem, convPK, updateConversationMetadata } 
 import { validateSessionId, SessionError } from "../lib/session.js";
 import { json, error } from "../lib/response.js";
 
+const VALID_ROLES = ["user", "assistant"];
+const VALID_SOURCES = ["voice", "transcript", "system"];
+const MAX_CONTENT_LENGTH = 4000;
+const MAX_TITLE_LENGTH = 45;
+
 export const handler: APIGatewayProxyHandlerV2 = async (event) => {
   try {
     const sessionId = validateSessionId(event.headers["x-session-id"]);
@@ -19,8 +24,18 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     const body = JSON.parse(event.body ?? "{}");
     const { role, content, source } = body;
 
-    if (!role || !content || !["user", "assistant"].includes(role)) {
+    if (!role || typeof content !== "string" || !VALID_ROLES.includes(role)) {
       return error(400, "Missing or invalid role/content");
+    }
+
+    const normalizedContent = content.trim();
+    if (!normalizedContent || normalizedContent.length > MAX_CONTENT_LENGTH) {
+      return error(400, `content must be 1-${MAX_CONTENT_LENGTH} characters`);
+    }
+
+    const normalizedSource = typeof source === "string" ? source.trim().toLowerCase() : "voice";
+    if (!VALID_SOURCES.includes(normalizedSource)) {
+      return error(400, "Invalid source");
     }
 
     const messageId = ulid();
@@ -30,14 +45,14 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
       PK: convPK(conversationId),
       SK: `MSG#${messageId}`,
       role,
-      content,
-      source: source ?? "voice",
+      content: normalizedContent,
+      source: normalizedSource,
       createdAt: now,
     });
 
-    // Auto-title on first user message
     if (role === "user" && metadata.title === "New conversation") {
-      const autoTitle = `🎙 ${content.slice(0, 45)}${content.length > 45 ? "..." : ""}`;
+      const titleSeed = normalizedContent.replace(/\s+/g, " ").replace(/[\r\n\t]+/g, " ");
+      const autoTitle = `🎙 ${titleSeed.slice(0, MAX_TITLE_LENGTH)}${titleSeed.length > MAX_TITLE_LENGTH ? "..." : ""}`;
       await updateConversationMetadata(conversationId, {
         title: autoTitle,
         updatedAt: now,
@@ -47,7 +62,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event) => {
     return json(201, { messageId, createdAt: now });
   } catch (err) {
     if (err instanceof SessionError) return error(400, err.message);
-    console.error(err);
+    console.error("saveVoiceMessage error");
     return error(500, "Internal server error");
   }
 };
