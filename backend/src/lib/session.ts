@@ -1,8 +1,18 @@
 export function validateSessionId(sessionId: string | undefined): string {
-  if (!sessionId || sessionId.length < 32) {
-    throw new SessionError("Missing or invalid x-session-id header (minimum 32 characters)");
+  if (!sessionId) {
+    throw new SessionError("Missing x-session-id header");
   }
-  return sessionId;
+
+  const normalized = sessionId.trim();
+  const sessionIdPattern = /^[A-Za-z0-9_-]{32,128}$/;
+
+  if (!sessionIdPattern.test(normalized)) {
+    throw new SessionError(
+      "Invalid x-session-id header (32-128 chars, alphanumeric, underscore, hyphen only)"
+    );
+  }
+
+  return normalized;
 }
 
 export class SessionError extends Error {
