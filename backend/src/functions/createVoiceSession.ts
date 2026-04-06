@@ -4,6 +4,7 @@ import type { APIGatewayProxyEventV2, APIGatewayProxyResultV2 } from "aws-lambda
 import type { CreateVoiceSessionRequest } from "../../../shared/types.js";
 
 const VALID_VOICES = ["alloy", "ash", "ballad", "coral", "echo", "sage", "shimmer", "verse", "marin", "cedar"];
+const OPENAI_REALTIME_URL = "https://api.openai.com/v1/realtime/sessions";
 
 export const handler = async (
   event: APIGatewayProxyEventV2
@@ -16,18 +17,18 @@ export const handler = async (
 
     validateSessionId(headers["x-session-id"]);
 
-    const apiKey = (headers["authorization"] ?? "").replace(/^Bearer\s+/i, "");
-    if (!apiKey || !apiKey.startsWith("sk-")) {
-      return error(401, "Invalid or missing API key");
+    const serverApiKey = process.env.OPENAI_API_KEY;
+    if (!serverApiKey || !serverApiKey.startsWith("sk-")) {
+      return error(500, "Voice session service is not configured");
     }
 
     const body: CreateVoiceSessionRequest = JSON.parse(event.body ?? "{}");
     const voice = body.voice && VALID_VOICES.includes(body.voice) ? body.voice : "alloy";
 
-    const response = await fetch("https://api.openai.com/v1/realtime/sessions", {
+    const response = await fetch(OPENAI_REALTIME_URL, {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${apiKey}`,
+        Authorization: `Bearer ${serverApiKey}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
@@ -63,7 +64,7 @@ export const handler = async (
     });
   } catch (err: any) {
     if (err instanceof SessionError) return error(400, err.message);
-    console.error("createVoiceSession error:", err);
+    console.error("createVoiceSession error");
     return error(500, "Failed to create voice session");
   }
 };
